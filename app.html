@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0b0d11">
+<title>QuickX Web 1.10 Beta</title>
+<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="premium.css">
+</head>
+<body>
+
+<div class="qx-shell">
+
+<aside class="sidebar" id="qxSidebar">
+  <div class="side-brand">
+    <img src="qx_logo_cyan.png" class="side-logo" alt="QX">
+    <span class="side-name">QuickX<span class="side-ver">Web 1.10 Beta</span></span>
+  </div>
+  <nav class="side-nav">
+    <div class="nav-sec">Work Orders</div>
+    <button class="tab-btn tab nav-item active" data-tab="master"><span class="nav-ic">▸</span><span class="nav-lbl">WO Master</span></button>
+    <button class="tab-btn tab nav-item" data-tab="pick"><span class="nav-ic">⤓</span><span class="nav-lbl">WO Issuing</span></button>
+    <button class="tab-btn tab nav-item" data-tab="adjust"><span class="nav-ic">⇄</span><span class="nav-lbl">Inventory Adjust</span></button>
+    <div class="nav-sec">Lookups</div>
+    <button class="tab-btn tab nav-item" data-tab="partLookup"><span class="nav-ic">◷</span><span class="nav-lbl">Part Lookup</span></button>
+    <button class="tab-btn tab nav-item" data-tab="kanban"><span class="nav-ic">▦</span><span class="nav-lbl">Kanban</span></button>
+    <div class="nav-sec">Receiving</div>
+    <button class="tab-btn tab nav-item" data-tab="poReceiving"><span class="nav-ic">⬇</span><span class="nav-lbl">PO Receiving</span></button>
+    <div class="nav-sec">Labels</div>
+    <button class="tab-btn tab nav-item" data-tab="printPart"><span class="nav-ic">🏷</span><span class="nav-lbl">Print Part Label</span></button>
+  </nav>
+  <div class="side-foot">
+    <div class="user-chip"><span class="avatar" id="umAvatar">–</span><span class="user-chip-txt user-badge" id="um">Not logged in</span><button class="signout-btn" id="signOutBtn" title="Sign out">⎋</button></div>
+  </div>
+</aside>
+
+<div class="qx-body">
+  <div class="topbar">
+    <div class="tb-title" id="tbTitle">WO Master</div>
+    <div class="topbar-actions">
+      <div class="stat-dot" id="rfStat" title="RF Plus session — click to reconnect"><span class="sd ok" id="rfDot"></span><span class="sd-lbl" id="rfStatusLabel">RF Plus</span></div>
+      <div class="stat-dot" id="brStat" title="SQL Bridge — click to re-check"><span class="sd ok" id="brDot"></span><span class="sd-lbl">Bridge</span></div>
+      <button class="btn btn-ghost btn-sm hidden" id="topReconnectBtn">↻ Reconnect</button>
+    </div>
+  </div>
+
+<div class="main">
+
+  <!-- WO INPUT -->
+  <div class="card wo-control-card" id="woControlCard">
+    <div class="card-body wo-control-body">
+      <div class="wo-row wo-main-controls">
+        <div class="fg">
+          <label>Work Order</label>
+          <input id="woi" class="wo-input" type="text" placeholder="e.g. 7129-A-001"
+                 autocomplete="off" autocapitalize="characters"/>
+        </div>
+        <button class="btn btn-primary" id="loadBtn">▶ LOAD</button>
+        <button class="btn btn-ghost" id="clearBtn">✕ CLEAR</button>
+        <span id="woMeta" style="font-size:13px;color:var(--muted);align-self:center;padding-left:4px;"></span>
+      </div>
+      <div class="label-controls">
+        <div class="fg">
+          <label>Issue Label Printer</label>
+          <select id="labelPrinter" autocomplete="off">
+            <option value="LABELPRINTER">LABELPRINTER</option>
+            <option value="ZEBRASMALL">ZEBRASMALL</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label>Copies</label>
+          <input id="labelCopies" type="number" min="1" max="999" value="1" style="width:90px;"/>
+        </div>
+        <label class="check-line" title="When enabled, the app will issue first, then print an issue label through the RF Plus print API.">
+          <input id="autoPrintAfterIssue" type="checkbox"/>
+          Auto print after issue
+        </label>
+        <span class="dim" id="labelPrintStatus">Print button uses the selected RF Plus label printer.</span>
+      </div>
+      <div id="subSec" class="hidden">
+        <div style="font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-top:14px;margin-bottom:6px;">Sub ID</div>
+        <div class="pills" id="subPills"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="statBar" class="statbar hidden"></div>
+
+  <!-- ═══ ISSUING TAB ═══ -->
+  <div id="tabIssue">
+    <div id="sumRow" class="sumrow hidden">
+      <div class="sc ct"><div class="n" id="sT">0</div><div class="l">Total</div></div>
+      <div class="sc cd"><div class="n" id="sD">0</div><div class="l">Done</div></div>
+      <div class="sc cp"><div class="n" id="sP">0</div><div class="l">Issuable</div></div>
+      <div class="sc cn"><div class="n" id="sN">0</div><div class="l">No Stock</div></div>
+    </div>
+    <div id="iPanel" class="card hidden">
+      <div class="card-header">
+        Parts Requirements
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-success btn-sm" id="btnAll">⚡ ISSUE ALL WITH STOCK</button>
+          <button class="btn btn-danger btn-sm" id="btnReturnAll">↩ RETURN ALL TO STOCK</button>
+          <button class="btn btn-ghost btn-sm" id="refreshPartsBtn">↻ Refresh</button>
+        </div>
+      </div>
+      <div class="table-filters" id="issueFilterBar">
+        <div class="fg filter-fg">
+          <label>Filter Part ID</label>
+          <input id="iFilterPart" type="text" placeholder="e.g. 01049" autocomplete="off" autocapitalize="characters"/>
+        </div>
+        <div class="fg filter-fg">
+          <label>Filter Location</label>
+          <input id="iFilterLocation" type="text" placeholder="e.g. P1 or FLOR" autocomplete="off" autocapitalize="characters"/>
+        </div>
+        <div class="fg filter-fg filter-wide">
+          <label>Search Description</label>
+          <input id="iFilterDesc" type="text" placeholder="keyword / partial match" autocomplete="off"/>
+        </div>
+        <div class="fg filter-fg filter-small">
+          <label>Status</label>
+          <select id="iFilterStatus">
+            <option value="ALL">All Status</option>
+            <option value="PENDING">Pending</option>
+            <option value="PARTIAL">Partial</option>
+            <option value="DONE">Done</option>
+            <option value="NO_STOCK">No Stock</option>
+          </select>
+        </div>
+        <div class="fg filter-fg filter-small">
+          <label>Sort Location</label>
+          <select id="iSortLocation">
+            <option value="NONE">Default</option>
+            <option value="AZ">A → Z</option>
+            <option value="ZA">Z → A</option>
+          </select>
+        </div>
+        <button class="btn btn-ghost btn-sm" id="iClearFilters">Clear Filters</button>
+        <span class="dim filter-count" id="iFilterMeta"></span>
+      </div>
+      <div id="nextPickCard" class="next-pick-card hidden"></div>
+      <div id="iProgress" class="hidden" style="padding:8px 16px 10px;">
+        <div style="font-size:12px;color:var(--muted);" id="iPLbl"></div>
+        <div class="pw"><div class="pb" id="iPBar" style="width:0%"></div></div>
+      </div>
+      <div class="wo-requirements-table-wrap qx-table-scroll">
+      <table class="wo-requirements-table qx-mobile-card-table">
+        <thead><tr>
+          <th class="sortable-th" data-issue-sort="part" title="Click to sort Part ID">Part ID</th>
+          <th style="text-align:center">Sub</th>
+          <th>Description</th>
+          <th style="text-align:center">Req Qty</th>
+          <th style="text-align:center">Issued</th>
+          <th style="text-align:center">In Stock</th>
+          <th class="sortable-th" data-issue-sort="location" title="Click to sort Location A→Z / Z→A">Location <span id="locSortMark" class="sort-mark"></span></th>
+          <th class="sortable-th" data-issue-sort="status" title="Click to group by Status">Status</th>
+          <th style="text-align:right">Action</th>
+        </tr></thead>
+        <tbody id="iTb"></tbody>
+      </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ADJUST OUT TAB ═══ -->
+  <div id="tabAdjust" class="hidden">
+    <qx-inventory-adjust id="adjustModule"></qx-inventory-adjust>
+  </div>
+
+  <!-- ═══ RETURN TAB ═══ -->
+  <div id="tabReturn" class="hidden">
+    <div id="rPanel" class="card hidden">
+      <div class="card-header">
+        Issued Parts — Select Qty to Return
+        <button class="btn btn-ghost btn-sm" id="refreshReturnBtn">↻ Refresh</button>
+      </div>
+      <div id="rLoading" class="hidden" style="padding:14px 16px;color:var(--muted);font-size:13px;display:flex;align-items:center;gap:8px;">
+        <div class="spin"></div> Loading issued locations...
+      </div>
+      <table>
+        <thead><tr>
+          <th>Part ID</th>
+          <th>Description</th>
+          <th style="text-align:center">Issued</th>
+          <th style="text-align:center">Return Qty</th>
+          <th>Location</th>
+          <th style="text-align:right">Action</th>
+        </tr></thead>
+        <tbody id="rTb"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ═══ PART DEMAND SEARCH TAB ═══ -->
+  <div id="tabPartDemand" class="hidden">
+    <div class="card">
+      <div class="card-header">
+        Unified Part Demand & Return Search
+        <button class="btn btn-ghost btn-sm" id="clearDemandBtn">✕ Clear Results</button>
+      </div>
+      <div class="card-body">
+        <div class="wo-row">
+          <div class="fg">
+            <label>Part Number</label>
+            <input id="dmPart" class="wo-input" type="text" placeholder="e.g. 04300403" autocomplete="off" autocapitalize="characters"/>
+          </div>
+          <div class="fg">
+            <label>Newest WOs to Scan</label>
+            <input id="dmLimit" type="number" min="1" max="500" value="250" style="width:120px;"/>
+          </div>
+          <button class="btn btn-primary" id="dmSearchBtn">🔎 SEARCH</button>
+          <button class="btn btn-ghost" id="dmRefreshResultsBtn" title="Refresh only WOs currently displayed in Active Demand and Issued / Returnable">🔄 Refresh</button>
+          <button class="btn btn-ghost" id="dmRefreshActiveBtn" title="Clear cache and reload the RF Plus WO list">↻ Clear WO Cache</button>
+          <button class="btn btn-success" id="dmIssueSelectedBtn">⚡ ISSUE SELECTED WITH STOCK</button>
+          <span id="dmMeta" style="font-size:13px;color:var(--muted);align-self:center;padding-left:4px;"></span>
+        </div>
+        <div class="dm-printer-panel" id="dmPrinterPanel">
+          <div class="fg">
+            <label>Issue Label Printer</label>
+            <select id="dmLabelPrinter" autocomplete="off">
+              <option value="LABELPRINTER">LABELPRINTER</option>
+              <option value="ZEBRASMALL">ZEBRASMALL</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Copies</label>
+            <input id="dmLabelCopies" type="number" min="1" max="999" value="1"/>
+          </div>
+          <label class="check-line dm-check-line" title="When enabled, the app will issue first, then print an issue label through the RF Plus print API.">
+            <input id="dmAutoPrintAfterIssue" type="checkbox"/>
+            Auto print after issue
+          </label>
+          <span class="dim" id="dmLabelPrintStatus">Demand labels use this selected printer.</span>
+        </div>
+
+        <div class="fg" style="margin-top:14px;">
+          <label>Machines / Work Orders to Scan</label>
+          <textarea id="dmWos" class="dm-textarea" placeholder="Paste machine/work order numbers here, one per line or comma separated. Example:&#10;7129-A-001&#10;7130-A-001&#10;7131-A-001"></textarea>
+          <div class="dim" style="margin-top:6px;line-height:1.4;">
+            The unified search scans each WO once and builds both sections from the same cached scan: Active Demand + Issued / Returnable. Work Order status controls eligibility: only Firm and Released demand is included; closed, cancelled, completed, and unreleased work is excluded. WO-number length is not used as a filter. Paste a WO list only when you want to override the scan list.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="dmProgress" class="card hidden">
+      <div class="card-body">
+        <div style="font-size:12px;color:var(--muted);" id="dmPLbl"></div>
+        <div class="pw"><div class="pb" id="dmPBar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <div id="dmPanel" class="card hidden">
+      <div class="card-header">
+        Active Demand — issue from here
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span id="dmSummary" class="dim"></span>
+          <button class="btn btn-ghost btn-sm" id="dmSelectAllBtn">Select Issuable</button>
+        </div>
+      </div>
+      <table>
+        <thead><tr>
+          <th style="text-align:center">Pick</th>
+          <th class="dm-action-col">Action</th>
+          <th>Machine / WO</th>
+          <th style="text-align:center">Sub</th>
+          <th>Part ID</th>
+          <th>Location</th>
+          <th style="text-align:center">Issue Qty</th>
+          <th style="text-align:center">Need</th>
+          <th style="text-align:center">Stock</th>
+          <th>Status</th>
+          <th>Description</th>
+          <th style="text-align:center">Req</th>
+          <th style="text-align:center">Issued</th>
+        </tr></thead>
+        <tbody id="dmTb"></tbody>
+      </table>
+    </div>
+
+    <div id="dmIssuedPanel" class="card hidden">
+      <div class="card-header">
+        Issued / Returnable — from the same scan
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span id="dmIssuedSummary" class="dim"></span>
+        </div>
+      </div>
+      <table>
+        <thead><tr>
+          <th class="dm-action-col">Action</th>
+          <th>Machine / WO</th>
+          <th style="text-align:center">Sub</th>
+          <th>Part ID</th>
+          <th>Location</th>
+          <th style="text-align:center">Return Qty</th>
+          <th style="text-align:center">Issued</th>
+          <th>Description</th>
+          <th style="text-align:center">Req</th>
+        </tr></thead>
+        <tbody id="dmIssuedTb"></tbody>
+      </table>
+    </div>
+
+  </div>
+
+
+
+  <!-- ═══ PART LOOKUP TAB — SQL Bridge Read / RF Plus Issue ═══ -->
+  <div id="tabPartLookup" class="hidden">
+    <div class="card pl-card">
+      <div class="card-header">
+        Part Lookup — SQL Bridge
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" id="plClearBtn">✕ Clear</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="pl-toolbar-layout">
+          <div class="wo-row pl-search-row">
+            <div class="fg pl-part-field">
+              <label>Part ID</label>
+              <input id="plPart" class="wo-input" type="text" placeholder="e.g. 01259078" autocomplete="off" autocapitalize="characters"/>
+            </div>
+            <button class="btn btn-primary" id="plLookupBtn">📦 LOOKUP</button>
+            <button class="btn btn-ghost" id="plRefreshBtn">↻ Refresh</button>
+            <span id="plMeta" class="dim" style="align-self:center;"></span>
+          </div>
+          <div class="module-printer-control pl-printer-control">
+            <div class="fg">
+              <label>Issue Label Printer</label>
+              <select id="plLabelPrinter" autocomplete="off">
+                <option value="LABELPRINTER">LABELPRINTER</option>
+                <option value="ZEBRASMALL">ZEBRASMALL</option>
+              </select>
+            </div>
+            <span class="dim" id="plLabelPrinterStatus">Used by Active Demand labels in Part Lookup.</span>
+          </div>
+        </div>
+        <div class="dim" style="margin-top:8px;line-height:1.4;">
+          Reads live VISUAL SQL through QX SQL Bridge at <span class="mono">http://localhost:8787</span>. Issue buttons still use RF Plus API, so stock changes stay inside RF Plus.
+        </div>
+      </div>
+    </div>
+
+    <div id="plProgress" class="card hidden">
+      <div class="card-body" style="display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;">
+        <div class="spin"></div><span id="plProgressText">Loading part lookup...</span>
+      </div>
+    </div>
+
+    <div id="plSummaryPanel" class="pl-summary-grid hidden">
+      <div class="sc ct"><div class="n" id="plSStock">0</div><div class="l">Stock</div></div>
+      <div class="sc cp"><div class="n" id="plSUsable">0</div><div class="l">Usable Loc.</div></div>
+      <div class="sc cd"><div class="n" id="plSDemand">0</div><div class="l">Demand</div></div>
+      <div class="sc cn"><div class="n" id="plSPO">0</div><div class="l">Incoming PO</div></div>
+    </div>
+
+    <div id="plPartPanel" class="card hidden">
+      <div class="card-header">Part Info</div>
+      <div class="card-body" id="plPartInfo"></div>
+    </div>
+
+    <div id="plStockPanel" class="card hidden">
+      <div class="card-header">Stock Locations</div>
+      <table>
+        <thead><tr>
+          <th>Warehouse</th><th>Location</th><th style="text-align:center">Qty</th><th style="text-align:center">Committed</th><th style="text-align:center">Available</th><th>Status</th><th>Use</th>
+        </tr></thead>
+        <tbody id="plStockTb"></tbody>
+      </table>
+    </div>
+
+    <div id="plDemandPanel" class="card hidden">
+      <div class="card-header">
+        Active Demand — Issue from Here
+        <span class="dim" id="plDemandSummary"></span>
+      </div>
+      <div class="card-body ad-card-body" id="plDemandHost"></div>
+    </div>
+
+    <div id="plPoPanel" class="card hidden">
+      <div class="card-header">
+        Incoming / Open PO
+        <span class="dim" id="plPoSummary"></span>
+      </div>
+      <table>
+        <thead><tr>
+          <th>PO</th><th style="text-align:center">Line</th><th>Vendor</th><th>Part ID</th><th style="text-align:center">Order</th><th style="text-align:center">Received</th><th style="text-align:center">Open</th><th>Due Date</th><th>User Defined 1</th>
+        </tr></thead>
+        <tbody id="plPoTb"></tbody>
+      </table>
+    </div>
+
+    <div id="plIssuedPanel" class="card hidden">
+      <div class="card-header">
+        Issued / Returnable
+        <span class="dim" id="plIssuedSummary"></span>
+      </div>
+      <table>
+        <thead><tr>
+          <th class="pl-action-col">Action</th>
+          <th>Machine / WO</th>
+          <th style="text-align:center">Sub</th>
+          <th>Part ID</th>
+          <th>Location</th>
+          <th style="text-align:center">Return Qty</th>
+          <th style="text-align:center">Issued</th>
+          <th>Description</th>
+          <th style="text-align:center">Req</th>
+        </tr></thead>
+        <tbody id="plIssuedTb"></tbody>
+      </table>
+    </div>
+  </div>
+
+
+
+
+  <!-- ═══ KANBAN TAB — Bulk SQL Read / RF Plus Adjust Out ═══ -->
+  <div id="tabKanban" class="hidden">
+    <div class="card kb-card">
+      <div class="card-header">
+        KANBAN
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <button class="btn btn-ghost btn-sm" id="kbClearBtn">✕ Clear</button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="kb-layout">
+          <div>
+            <label class="kb-label">Paste Part IDs from Excel</label>
+            <textarea id="kbPaste" class="kb-paste" placeholder="Paste one Part ID per line, or paste Excel rows. First column will be used.&#10;Example:&#10;05100091&#10;03510109&#10;01259078"></textarea>
+          </div>
+          <div class="kb-actions-box">
+            <button class="btn btn-primary" id="kbAnalyzeBtn">🔎 Analyze List</button>
+            <button class="btn btn-success" id="kbExportReorderBtn">⬇ Export Reorder List</button>
+            <button class="btn btn-ghost" id="kbExportAllBtn">⬇ Export All</button>
+            <div class="dim" id="kbMeta">SQL is read-only. Adjust Out uses RF Plus with KANBAN reason 5583.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="kbProgress" class="card hidden">
+      <div class="card-body" style="display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;">
+        <div class="spin"></div><span id="kbProgressText">Analyzing Kanban list...</span>
+      </div>
+    </div>
+
+    <div id="kbSummaryPanel" class="kb-summary-grid hidden">
+      <div class="sc ct"><div class="n" id="kbSTotal">0</div><div class="l">Total</div></div>
+      <div class="sc cd"><div class="n" id="kbSInStock">0</div><div class="l">In Stock</div></div>
+      <div class="sc cp"><div class="n" id="kbSOnPO">0</div><div class="l">On PO</div></div>
+      <div class="sc cn"><div class="n" id="kbSReorder">0</div><div class="l">Needs Reorder</div></div>
+      <div class="sc cn"><div class="n" id="kbSInvalid">0</div><div class="l">Invalid</div></div>
+    </div>
+
+    <div id="kbPanel" class="card hidden">
+      <div class="card-header">
+        Kanban Results
+        <span class="dim" id="kbSummaryText"></span>
+      </div>
+      <div class="table-filters kb-filter-bar">
+        <div class="fg filter-fg filter-small">
+          <label>Show</label>
+          <select id="kbFilterAction">
+            <option value="ALL">All</option>
+            <option value="IN_STOCK">In Stock</option>
+            <option value="ON_PO">On PO</option>
+            <option value="NEEDS_REORDER">Needs Reorder</option>
+            <option value="INVALID">Invalid</option>
+          </select>
+        </div>
+        <div class="fg filter-fg filter-wide">
+          <label>Search</label>
+          <input id="kbSearch" type="text" placeholder="Part / description / PO" autocomplete="off" autocapitalize="characters"/>
+        </div>
+        <span class="dim filter-count" id="kbFilterMeta"></span>
+      </div>
+      <table class="kb-table">
+        <colgroup>
+          <col class="kb-col-part">
+          <col class="kb-col-desc">
+          <col class="kb-col-stock">
+          <col class="kb-col-locs">
+          <col class="kb-col-po">
+          <col class="kb-col-udf">
+          <col class="kb-col-action">
+          <col class="kb-col-qty">
+          <col class="kb-col-adjloc">
+          <col class="kb-col-rf">
+        </colgroup>
+        <thead><tr>
+          <th>Part ID</th>
+          <th>Description</th>
+          <th style="text-align:center">Stock</th>
+          <th>Locations</th>
+          <th>Incoming / Open PO</th>
+          <th>User Defined 1</th>
+          <th>Action</th>
+          <th style="text-align:center">Adjust Qty</th>
+          <th>Adjust Location</th>
+          <th style="text-align:right">Adjust Out to Kanban</th>
+        </tr></thead>
+        <tbody id="kbTb"></tbody>
+      </table>
+    </div>
+  </div>
+
+
+  <!-- ═══ PO RECEIVING TAB (native module — shares main session/bridge) ═══ -->
+  <div id="tabPOReceiving" class="hidden">
+    <div class="card po-search-card">
+      <div class="card-body">
+        <div class="po-search-row">
+          <div class="po-fg po-search-type"><label>Search By</label><select id="po_searchType"><option value="po">PO Number</option><option value="vendor">Vendor</option></select></div>
+          <div class="po-fg po-box"><label id="po_searchLabel">Purchase Order</label><input id="po_poInput" type="text" class="po-big" placeholder="e.g. 74633" autocomplete="off"></div>
+          <button class="btn btn-primary" id="po_loadPoBtn">▶ LOAD PO</button>
+          <button class="btn btn-success" id="po_receiveAllBtn" disabled>⚡ RECEIVE ALL + LABELS</button>
+          <button class="btn btn-success" id="po_updatePoBtn" disabled>✓ UPDATE ORDER</button>
+          <button class="btn btn-ghost" id="po_clearBtn">✕ CLEAR</button>
+          <span class="po-hint" id="po_poMeta">Load a PO. Use ALL / PARTIAL / RETURN / LABEL directly from each line.</span>
+        </div>
+        <div id="po_vendorResults" class="po-vendor-results hidden" aria-live="polite"></div>
+        <div class="po-filter-row">
+          <div class="po-fg"><label>Part Filter</label><input id="po_partFilter" type="text" placeholder="part id"></div>
+          <div class="po-fg po-flex"><label>Description Keyword</label><input id="po_descFilter" type="text" placeholder="partial keyword search"></div>
+          <div class="po-fg"><label>Status</label><select id="po_statusFilter"><option value="all">All</option><option value="open">Open only</option><option value="received">Received this session</option><option value="done">Done/closed</option></select></div>
+          <div class="po-fg po-small"><label>Printer</label><select id="po_printerSel"><option value="LABELPRINTER">LABELPRINTER</option><option value="ZEBRASMALL">ZEBRASMALL</option></select></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="po_statBar" class="po-statbar hidden"></div>
+
+    <div class="card po-lines-card">
+      <div class="card-header">PO Lines <span id="po_lineCount" class="dim"></span></div>
+      <div class="card-body po-tableWrap">
+        <table class="po-table"><thead><tr><th>Line</th><th>Part</th><th>Vend. Part ID</th><th class="po-descCol">Description</th><th>User Defined 1</th><th style="text-align:center">Open Qty</th><th style="text-align:center">Rec'd</th><th>UOM</th><th>Location</th><th>Status</th><th class="po-actionHead">Action</th></tr></thead><tbody id="po_lineTb"><tr><td colspan="11" class="po-empty">No PO loaded yet.</td></tr></tbody></table>
+      </div>
+    </div>
+
+    <details id="po_demandPanel" class="card po-demand-card hidden" open>
+      <summary class="po-demand-summary-row">
+        <span>Active Demand — Issue from Here</span>
+        <span id="po_demandSummary" class="dim"></span>
+      </summary>
+      <div class="card-body ad-card-body" id="po_demandHost"></div>
+    </details>
+
+    <details class="po-advanced"><summary>Advanced / API Debug</summary><textarea id="po_debug" rows="10" readonly></textarea></details>
+  </div>
+
+  <!-- PO Receiving qty modal -->
+  <div class="modal-overlay hidden" id="po_qtyModal"><div class="modal-card po-modalBox"><button class="modal-x" id="po_modalClose">×</button><h2 id="po_modalTitle">Qty</h2><div id="po_modalInfo" class="po-modalInfo"></div>
+    <div class="po-modalControls">
+      <div class="po-controlBlock"><label id="po_modalQtyLabel">Receive Qty</label><div class="po-stepper"><button class="po-qtyBtn" id="po_qtyMinus">−</button><input id="po_modalQty" type="text" inputmode="decimal"><button class="po-qtyBtn" id="po_qtyPlus">+</button></div></div>
+      <div class="po-controlBlock hidden" id="po_copiesBlock"><label>Label Copies</label><div class="po-stepper"><button class="po-qtyBtn" id="po_copiesMinus">−</button><input id="po_modalCopies" type="text" inputmode="numeric" value="1"><button class="po-qtyBtn" id="po_copiesPlus">+</button></div></div>
+    </div>
+    <div class="modal-actions"><button class="btn btn-ghost" id="po_modalCancel">Cancel</button><button class="btn btn-primary" id="po_modalOk">Confirm</button></div><div class="po-hint" id="po_modalHint"></div></div></div>
+
+  <!-- ═══ PRINT PART LABEL TAB ═══ -->
+  <div id="tabPrintPart" class="hidden">
+    <div class="card ppl-card">
+      <div class="card-header">
+        Print Part Label
+        <button class="btn btn-ghost btn-sm" id="pplClearBtn">✕ Clear</button>
+      </div>
+      <div class="card-body ppl-grid">
+        <div class="ppl-single">
+          <div class="section-title">Single Part Label</div>
+          <div class="ppl-row">
+            <div class="fg ppl-part-field">
+              <label>Part ID</label>
+              <input id="pplPart" class="wo-input" type="text" placeholder="scan/type part and press Enter" autocomplete="off" autocapitalize="characters"/>
+            </div>
+            <div class="fg ppl-small">
+              <label>Qty on Label</label>
+              <input id="pplQty" type="number" min="1" step="1" value="1"/>
+            </div>
+            <div class="fg ppl-small">
+              <label>Copies</label>
+              <input id="pplCopies" type="number" min="1" max="999" step="1" value="1"/>
+            </div>
+            <div class="fg ppl-printer-field">
+              <label>Printer</label>
+              <select id="pplPrinter">
+                <option value="LABELPRINTER">LABELPRINTER</option>
+                <option value="ZEBRASMALL">ZEBRASMALL</option>
+              </select>
+            </div>
+          </div>
+          <div class="ppl-info" id="pplInfo">Enter a part number to validate description/UOM before printing.</div>
+          <div class="ppl-actions">
+            <button class="btn btn-primary" id="pplValidateBtn">🔍 Validate Part</button>
+            <button class="btn btn-print" id="pplPrintBtn">🏷 Print Label</button>
+          </div>
+        </div>
+
+        <div class="ppl-mass">
+          <div class="section-title">Mass Label Print</div>
+          <div class="dim" style="margin-bottom:8px;line-height:1.4;">Paste from Excel: Column 1 = Part ID, Column 2 = Qty, Column 3 = Num. Of Copies.</div>
+          <textarea id="pplMassText" class="ppl-mass-text" placeholder="Example:
+04300851	1	4
+05100091	100	1"></textarea>
+          <div class="ppl-actions">
+            <button class="btn btn-primary" id="pplPrepareMassBtn">🔍 Prepare / Validate</button>
+            <button class="btn btn-success" id="pplPrintMassBtn">⚡ Print Mass Labels</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="pplMassPanel" class="card hidden">
+      <div class="card-header">
+        Mass Label Rows
+        <span class="dim" id="pplMassSummary"></span>
+      </div>
+      <table>
+        <thead><tr>
+          <th>#</th>
+          <th>Part ID</th>
+          <th>Description</th>
+          <th style="text-align:center">Qty</th>
+          <th style="text-align:center">Copies</th>
+          <th>Printer</th>
+          <th>Status</th>
+        </tr></thead>
+        <tbody id="pplMassTb"></tbody>
+      </table>
+    </div>
+  </div>
+
+
+</div><!-- /main -->
+</div><!-- /qx-body -->
+</div><!-- /qx-shell -->
+
+
+<!-- RF PLUS LOGIN OVERLAY -->
+<div id="loginOverlay" class="login-overlay hidden">
+  <div class="login-card">
+    <div class="login-title"><img src="qx_logo_cyan.png" class="login-logo" alt="QX"><br>Sign in to RF Plus</div>
+    <div class="login-text">
+      Enter your own RF Plus user ID and password. This also completes the warehouse / language “Proceed” step automatically. Your password is never saved — only your RF Plus session is kept on this PC.
+    </div>
+    <div class="login-fields">
+      <label class="login-flabel" for="loginUser">RF Plus User ID</label>
+      <input id="loginUser" type="text" class="login-input" autocomplete="username" autocapitalize="characters" spellcheck="false" placeholder="e.g. JAY_E">
+      <label class="login-flabel" for="loginPass">Password</label>
+      <input id="loginPass" type="password" class="login-input" autocomplete="current-password" placeholder="Your RF Plus password">
+    </div>
+    <button id="loginBtn" class="btn btn-primary">🔐 SIGN IN</button>
+    <div id="loginMsg" class="login-msg"></div>
+    <div class="login-note">Company, warehouse, and language are preset for Quickmill. Each user signs in with their own ID.</div>
+  </div>
+</div>
+
+
+<!-- CUSTOM ISSUE LABEL MODAL -->
+<div id="customLabelModal" class="modal-overlay hidden">
+  <div class="modal-card custom-label-card">
+    <div class="custom-label-head">
+      <div>
+        <div class="modal-title" id="customLabelTitle">Custom Issue Label</div>
+        <div class="custom-label-part" id="customLabelPart"></div>
+        <div class="custom-label-meta" id="customLabelMeta"></div>
+      </div>
+      <button class="modal-x" id="customLabelCloseBtn" title="Close">×</button>
+    </div>
+
+    <div class="custom-label-grid">
+      <div class="label-adjust-box">
+        <div class="label-adjust-title">Label Qty</div>
+        <div class="label-adjust-sub">Qty printed on label</div>
+        <div class="label-stepper">
+          <button class="step-btn big-minus" data-label-step="qty:-1">−</button>
+          <input id="customLabelQty" type="text" inputmode="numeric" pattern="[0-9]*" min="1" step="1" value="1" autocomplete="off"/>
+          <button class="step-btn big-plus" data-label-step="qty:1">+</button>
+        </div>
+      </div>
+
+      <div class="label-adjust-box">
+        <div class="label-adjust-title">Copies</div>
+        <div class="label-adjust-sub">Number of labels</div>
+        <div class="label-stepper">
+          <button class="step-btn big-minus" data-label-step="copies:-1">−</button>
+          <input id="customLabelCopies" type="text" inputmode="numeric" pattern="[0-9]*" min="1" max="999" step="1" value="1" autocomplete="off"/>
+          <button class="step-btn big-plus" data-label-step="copies:1">+</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-actions custom-label-actions">
+      <button class="btn btn-ghost" id="customLabelCancelBtn">Cancel</button>
+      <button class="btn btn-print" id="customLabelPrintBtn">🖨 PRINT CUSTOM LABEL</button>
+    </div>
+    <div class="custom-label-hint">Use Label+ only when this one label needs a different qty or copies.</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+
+<script src="adjust-native.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

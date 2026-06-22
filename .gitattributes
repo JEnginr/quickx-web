@@ -1,2 +1,32 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+# Local secrets and machine-specific settings
+.env
+.env.*
+!.env.example
+config.local.*
+settings.local.*
+secrets/
+credentials/
+
+# Logs and temporary files
+logs/
+Logs/
+*.log
+*.tmp
+*.bak
+*.old
+
+# Build archives and backups
+*.zip
+backup/
+backups/
+releases/
+
+# Windows files
+Thumbs.db
+Desktop.ini
+
+# Editors
+.vscode/
+.idea/

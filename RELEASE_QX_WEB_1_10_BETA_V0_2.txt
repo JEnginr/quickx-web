@@ -1,0 +1,56 @@
+QX Web 1.10 Beta v0.2 — One-Click LAN Hosting Fix
+==================================================
+
+Scope
+-----
+This update changes only the QX Web hosting/startup layer. Inventory Adjust,
+Vendor Open PO Search, RF Plus transaction payloads, SQL read queries, and all
+other business logic remain unchanged from QX Web 1.10 Beta v0.1.
+
+Root cause
+----------
+START_QX_WEB.bat only launched qx-web-server.ps1. It did not create the Windows
+HTTP URL reservation or inbound Windows Firewall rule required for another PC
+to reach port 8080. QX Report's INSTALL_LAN_HOSTING_AS_ADMIN configured only QX
+Report's own host/port; it could not make QX Web port 8080 reachable.
+
+QX Web 1.9.2 worked only when the host PC already happened to have a compatible
+URL reservation and firewall state. The old BAT did not guarantee or repair
+that state, and QX Web 1.10 inherited the same weakness.
+
+What changed
+------------
+START_QX_WEB.bat now performs the complete process from one double-click:
+
+1. Checks the URL reservation and firewall rule.
+2. If missing, requests Administrator approval automatically.
+3. Reserves http://+:8080/ for the current Windows user.
+4. Creates an inbound TCP 8080 firewall rule limited to Domain/Private profiles
+   and LocalSubnet devices.
+5. Detects whether QX Web is already running.
+6. Detects a non-QX process occupying port 8080 and reports its PID.
+7. Detects and displays the host PC's LAN IPv4 link.
+8. Starts qx-web-server.ps1.
+9. Writes basic startup diagnostics to QX_WEB_STARTUP.log.
+
+There is no separate INSTALL_LAN_HOSTING_AS_ADMIN step.
+
+Files changed
+-------------
+- START_QX_WEB.bat
+- qx-web-server.ps1 (version/banner text only)
+
+Files added
+-----------
+- RELEASE_QX_WEB_1_10_BETA_V0_2.txt
+
+How to use
+----------
+Double-click START_QX_WEB.bat.
+
+On the first run only, approve the Windows Administrator prompt. The same BAT
+installs the required LAN settings and immediately starts QX Web. Later runs
+start normally unless the Windows firewall/URL reservation is removed.
+
+Keep the server window open. Other computers should use the exact LAN link
+shown in that window.

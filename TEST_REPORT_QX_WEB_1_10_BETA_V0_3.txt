@@ -1,0 +1,52 @@
+QX Web 1.10 Beta v0.3 — Test Report
+====================================
+
+Base
+----
+QX Web 1.10 Beta v0.2 LAN Auto-Host Fix.
+QX 1.9 Final Chrome Extension was not modified.
+
+Static/code checks
+------------------
+PASS - app.js JavaScript syntax.
+PASS - adjust-native.js JavaScript syntax.
+PASS - PowerShell braces and parentheses balanced.
+PASS - app.html, app.css and premium.css are byte-for-byte unchanged from v0.2.
+PASS - RF Plus/API endpoint sets are unchanged in app.js and adjust-native.js.
+PASS - SQL host script contains no INSERT INTO, UPDATE dbo., DELETE FROM or MERGE INTO operations.
+PASS - Connected RF status label resolves to RF Plus.
+PASS - Inventory Adjust Shadow DOM contains cyan, green, red and neutral QX button styles.
+PASS - Mass Adjust textarea has dark background, full-strength value text and 60% placeholder text.
+
+Mocked Inventory Adjust checks
+------------------------------
+PASS - Single Adjust In automatically selected PRIMARY_LOC_ID P1A1.
+PASS - Selected primary location displayed yellow.
+PASS - Selected primary location displayed a Primary badge.
+PASS - Mass Adjust In with Part ID + Qty resolved each valid primary location.
+PASS - Automatic mass primary displayed yellow.
+PASS - Explicit Excel Location P2 overrode the automatic primary location.
+PASS - Explicit non-primary location retained normal text color.
+PASS - Missing/prohibited primary location became Needs Location.
+PASS - Single Adjust In did not guess a non-primary location.
+PASS - Existing Adjust In and Adjust Out RF Plus endpoint strings were preserved.
+
+Primary-location safety checks
+------------------------------
+PASS - Existing primary CR_PART_LOCATION must be Active, unlocked and non-transit.
+PASS - HOLD is not accepted as an automatic primary destination.
+PASS - A missing part/location row can still use PART.PRIMARY_LOC_ID so RF Plus may validate/create it.
+PASS - RF Plus-rejected destinations are marked Needs Location and cannot be silently resubmitted.
+PASS - A missing location is not replaced with the only non-primary suggestion.
+
+Design preservation checks
+--------------------------
+PASS - No global theme, navigation, spacing, table or popup stylesheet was changed.
+PASS - Button-color changes are isolated inside the native Inventory Adjust Shadow DOM.
+PASS - LAN one-click hosting behaviour remains unchanged from v0.2.
+
+Limitations
+-----------
+- Live production Adjust In/Adjust Out transactions were not submitted during build testing.
+- Native browser datalist option colors can vary by browser; the selected primary value and Primary badge remain visibly yellow.
+- First acceptance should use one small known Adjust In and one existing Adjust Out before mass processing.

@@ -1,0 +1,63 @@
+QX Web 1.10 Beta v0.6 — Test Report
+====================================
+
+AUTOMATED / STATIC TESTS PASSED
+- app.js JavaScript syntax.
+- adjust-native.js JavaScript syntax.
+- PowerShell brace and parenthesis structural balance.
+- Confirmed server contains no SQL INSERT, UPDATE, DELETE, MERGE, EXEC or EXECUTE.
+- Confirmed stockLocations and destinationLocations mode-specific response fields.
+- Confirmed Primary badge/tag markup and CSS are removed.
+- Confirmed guessed RF Plus stock lookup plan is no longer used by Inventory Adjust.
+- Confirmed separate functions exist:
+    getAdjustOutStockLocations()
+    getAdjustInDestinationLocations()
+    getPrimaryLocationFromSql()
+- Confirmed official RF Plus transaction and destination-validation routes remain.
+- Confirmed duplicate-submit guard remains.
+- Confirmed app.js differs from v0.5 only by QX_VERSION.
+- Confirmed files outside Inventory Adjust/server response/version/docs are unchanged.
+
+MOCKED BEHAVIOURAL TESTS PASSED — 6 SUITES
+1. Adjust Out, one stocked location:
+   - SQL part loaded.
+   - zero-stock location excluded.
+   - one stocked location auto-selected.
+   - no Primary badge displayed.
+2. Adjust Out, multiple stocked locations:
+   - no location forced automatically.
+   - non-primary stocked location selectable.
+   - selected non-primary location sent to InventoryAdjustOut.
+3. SQL failure:
+   - real non-sensitive SQL endpoint error appears in the status/debug output.
+   - error is not replaced with generic "part not found" text.
+4. Adjust In:
+   - SQL primary selected by default.
+   - zero-stock alternate destination selectable.
+   - selected alternate destination passed through NeedSetPartLocationStatus and
+     ValidateLocationAndCreatePartLocation.
+   - selected alternate destination sent to InventoryAdjustIn.
+5. Mass Adjust Out:
+   - one actual stocked location auto-selected.
+   - multiple stocked locations return NEEDS LOCATION.
+   - primary is not required.
+6. Mass Adjust In:
+   - blank destination uses SQL primary.
+   - provided Excel destination overrides primary.
+
+NON-REGRESSION CHECKS
+- Transaction Description and Reason defaults unchanged.
+- Adjust Out and Adjust In RF Plus payload field names unchanged.
+- Main QX Web session and multi-user code unchanged.
+- PO Receiving, WO modules, Part Lookup, KANBAN and Vendor PO code unchanged.
+- Dark theme and module layout unchanged except Primary badge removal.
+
+KNOWN LIMITATIONS / LIVE ACCEPTANCE
+- No production inventory quantity was changed during automated testing.
+- First acceptance should use:
+    1) one known Adjust Out part with one location,
+    2) one known Adjust Out part with multiple locations,
+    3) one small Adjust In to the SQL primary,
+    4) one small Adjust In to another RF Plus-valid destination.
+- Trace/profile-heavy parts and project/WBS warehouse scenarios retain the existing
+  v0.5 limitations and should be tested separately before broad use.

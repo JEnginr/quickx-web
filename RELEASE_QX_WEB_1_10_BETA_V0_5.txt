@@ -1,0 +1,65 @@
+QX Web 1.10 Beta v0.5 — Adjust Out Location Restore
+=====================================================
+
+BASE
+- Built from QX Web 1.10 Beta v0.4 Primary Location + PO Filter.
+- QX 1.9 Final Chrome Extension was not modified.
+
+ROOT CAUSE
+The QX Web 1.10 Inventory Adjust rewrite simplified RF Plus stock-response
+normalization. It recognized common fields such as AvailableQty and StockQty,
+but omitted response aliases that the proven QX Web 1.9.2 Adjust Out lookup
+accepted, including QtyAvailable, QtyOnHand, OnHandQty, BalanceQty,
+InventoryQty, PartQty and several location/part/trace aliases.
+
+When RF Plus returned a positive quantity using one of those aliases, QX
+normalized it as zero. That caused a valid stocked location to be treated as
+unusable and displayed "No usable stock location was returned."
+
+FIX
+1. Restored the QX Web 1.9.2 stock response normalization and endpoint fallback
+   behavior for Adjust Out.
+2. Single Adjust Out now keeps only actual locations with quantity > 0.
+3. Mass Adjust Out uses the same restored lookup/parser and keeps only stocked
+   locations.
+4. One stocked location is automatically selected.
+5. Multiple stocked locations remain selectable by the user.
+6. Adjust Out accepts stocked non-primary locations. There is no primary-location
+   requirement in validation, preparation, preview or submission.
+7. SQL PRIMARY_LOC_ID is used only to display the yellow Primary reference when
+   that location appears among the stocked locations.
+8. The final Adjust Out payload continues to use the actual selected stocked
+   location through:
+      POST /api/inventoryAdjust/InventoryAdjustOut
+
+ADJUST IN
+- Adjust In primary-location SQL logic was not changed.
+- Single and Mass Adjust In continue to use dbo.PART_SITE.PRIMARY_LOC_ID through
+  the existing read-only QX server endpoints.
+- Adjust In transactions continue through RF Plus.
+
+FILES CHANGED
+- adjust-native.js: restored proven Adjust Out stock parser/selection behavior.
+- app.js: version label only.
+- qx-web-server.ps1: health/version text only.
+- START_QX_WEB.bat: version comment only.
+- README_QX_1_9_WEB.txt: version/release note only.
+
+DESIGN PRESERVATION
+The following files are byte-for-byte unchanged from v0.4:
+- app.html
+- app.css
+- premium.css
+- qx_logo.png
+- qx_logo_cyan.png
+
+No button, layout, theme, PO Receiving, Vendor PO, Active Demand, session,
+printer, SQL query or RF Plus transaction design was changed.
+
+PRODUCTION ACCEPTANCE
+Test a known stocked part first:
+1. Open Inventory Adjust > Adjust Out.
+2. Enter a part known to have stock in one or more locations.
+3. Confirm only positive-stock locations appear.
+4. Confirm a stocked non-primary location can be selected.
+5. Submit a small controlled quantity and verify the transaction in VISUAL.

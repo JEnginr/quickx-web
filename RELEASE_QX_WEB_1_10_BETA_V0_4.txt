@@ -1,0 +1,96 @@
+QX Web 1.10 Beta v0.4 — Correct Primary Location + PO Keyword Filter
+=====================================================================
+
+BRANCH RULE
+- QX Web only.
+- QX 1.9 Final Chrome Extension was not changed.
+- Base: QX Web 1.10 Beta v0.3 UI + Primary Location Fix.
+
+ROOT CAUSE — ADJUST IN PRIMARY LOCATION
+The previous build attempted to read PRIMARY_LOC_ID directly from dbo.PART.
+In the Quickmill / RF Plus VISUAL workflow, the site-specific source is:
+
+  dbo.PART_SITE.PRIMARY_LOC_ID
+
+The correct PART_SITE record is selected through the active warehouse:
+
+  dbo.WAREHOUSE.ID = QMIL
+  dbo.WAREHOUSE.SITE_ID = dbo.PART_SITE.SITE_ID
+  dbo.PART_SITE.PART_ID = Part ID
+
+When PART.PRIMARY_LOC_ID was unavailable in the live schema, the old fallback
+returned a blank value. The frontend then correctly but misleadingly reported
+that no valid primary destination was available.
+
+IMPLEMENTED LOCATION LOGIC
+Adjust Out
+- RF Plus stock-location lookup remains the transaction source.
+- Only locations with available stock can be selected.
+- Primary location is visual reference only.
+- Auto-selection no longer gives the primary location a special selection bonus;
+  it selects from usable stocked rows based on available quantity.
+- Zero-stock locations are never selected for Adjust Out.
+
+Adjust In — single
+- Reads dbo.PART_SITE.PRIMARY_LOC_ID through dbo.WAREHOUSE.SITE_ID.
+- Automatically selects a valid primary destination.
+- A primary location with zero current inventory remains valid.
+- If the part/location row does not exist yet, RF Plus performs final validation
+  and may create it through the existing official Adjust In workflow.
+- Missing/inactive SQL mapping shows an accurate fallback message and requires a
+  manual location before submission.
+
+Adjust In — mass
+- One parameterized batch request resolves all unique Part IDs:
+
+    POST /api/inventory-adjust/primary-locations
+
+- No per-row SQL primary-location request is made.
+- An explicit Excel location overrides the SQL primary location.
+- Missing or invalid mappings become NEEDS LOCATION and are not submitted.
+- Every selected destination is still validated by RF Plus.
+
+SQL SOURCE
+- dbo.PART_SITE.PRIMARY_LOC_ID
+- dbo.PART_SITE.PRIMARY_WHS_ID
+- dbo.PART_SITE.SITE_ID
+- dbo.WAREHOUSE.SITE_ID
+- dbo.CR_PART_LOCATION is used only to read current quantity/status and determine
+  whether an existing part/location row is inactive, locked, or transit.
+
+PO RECEIVING DESCRIPTION KEYWORD
+The existing Description Keyword filter now matches any loaded PO line where the
+search text occurs in:
+
+- Description
+- dbo.PURC_ORDER_LINE.VENDOR_PART_ID
+- dbo.PART.MFG_PART_ID
+
+Manufacturer Part ID is loaded into the background data model only. No new visible
+PO Lines column was added. Part Filter remains unchanged and combines with the
+expanded keyword filter using AND logic.
+
+FILES CHANGED
+- qx-web-server.ps1
+- adjust-native.js
+- app.js
+- START_QX_WEB.bat (version comment only)
+- README_QX_1_9_WEB.txt
+
+FILES NOT CHANGED
+- app.html
+- app.css
+- premium.css
+- qx_logo.png
+- qx_logo_cyan.png
+
+TRANSACTION SAFETY
+- SQL remains read-only.
+- Adjust In / Adjust Out continue through RF Plus APIs.
+- PO Receiving transactions continue through RF Plus APIs.
+- No login, session, navigation, theme, layout, or printer logic was changed.
+
+ACCEPTANCE NOTE
+No live production inventory transaction or live QM SQL query was executed during
+build testing. Test one known part with a zero-stock primary location and one small
+Adjust In before broader use.

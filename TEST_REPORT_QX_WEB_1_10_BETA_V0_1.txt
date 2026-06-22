@@ -1,0 +1,78 @@
+QX Web 1.10 Beta v0.1 Test Report
+=================================
+
+SCOPE
+Inventory Adjust (Adjust Out + Adjust In + mass workflows), shared dark dropdowns,
+PO Receiving Vendor Open PO search, read-only server endpoints, and regression checks.
+
+STATIC / STRUCTURAL TESTS — PASS
+- app.js JavaScript syntax: PASS
+- adjust-native.js JavaScript syntax: PASS
+- HTML duplicate IDs: PASS (194 unique IDs)
+- Inventory Adjust navigation and native custom element: PASS
+- Old qx-adjust-out custom element removed: PASS
+- Web branch contains no manifest.json/background.js/popup files: PASS
+- PowerShell delimiter structural check: PASS
+- SQL server source contains no INSERT / UPDATE / DELETE / MERGE statements: PASS
+- New health version and endpoint list present: PASS
+- Shared dark select/option/optgroup styling present globally and inside Inventory Adjust: PASS
+
+MOCKED RF PLUS / UI TESTS — PASS
+- QX Web full-page boot smoke with Inventory Adjust custom element: PASS
+- Existing Adjust Out uses /api/inventoryAdjust/InventoryAdjustOut: PASS
+- Existing Adjust Out default 5583 and selected stock location payload: PASS
+- Adjust In defaults to Manual / other... and reason 5556: PASS
+- Adjust In uses /api/inventoryAdjust/InventoryAdjustIn: PASS
+- Adjust In payload includes partId, traceId, qty, warehouseId, locationId,
+  transactionDescription, and reason: PASS
+- Adjust In zero-stock primary destination suggestion: PASS
+- New part/location status is required before transaction and A/U/H is passed to RF Plus: PASS
+- Adjust In AUTO trace profile generation using getTraceProfile/updateTraceProfile: PASS
+- Adjust In maximum lot quantity validation path present: PASS
+- Identical Adjust In submit within 15 seconds is blocked: PASS
+- Mass Adjust In validates Part ID and positive Qty: PASS
+- Mass Adjust In supports optional Location and Trace: PASS
+- Mass Adjust In resolves primary location when safe: PASS
+- Mass Adjust In row-by-row RF Plus submission: PASS
+- Mass Adjust In statuses Ready / Processing / Completed / Failed / Needs Location /
+  Needs Trace / Needs Status / Invalid Part / Invalid Quantity: PASS
+- Existing Mass Adjust Out endpoint and stock-selection path retained: PASS
+
+PO RECEIVING VENDOR SEARCH TESTS — PASS
+- Search type selector switches PO Number / Vendor: PASS
+- Partial Vendor query calls /api/po/vendor-search: PASS
+- Compact open-PO result renders: PASS
+- Selecting result switches back to PO mode and calls existing /api/po loader: PASS
+- Existing PO line screen is reused; no second receiving module: PASS
+- Vendor results are held in browser module state only: PASS
+
+SQL QUERY REVIEW — PASS (STATIC)
+- Vendor search filters PURCHASE_ORDER.STATUS = 'R' in SQL: PASS
+- Open quantity is calculated from delivery schedule or PO line received quantity: PASS
+- Fully received POs are excluded by HAVING open quantity > 0: PASS
+- Partially received POs remain when open quantity > 0: PASS
+- Vendor ID / partial name filtering occurs in SQL: PASS
+- Adjust In SQL endpoint includes active, unlocked, non-transit location suggestions,
+  including zero-quantity locations: PASS
+- RF Plus still performs final Adjust In destination validation: PASS
+
+SESSION / ARCHITECTURE TESTS — PASS
+- Inventory Adjust uses the main QXServices RF Plus api/session: PASS
+- No module login, Bridge, reconnect, iframe, or server-side form state added: PASS
+- Adjustment state is contained in each browser custom-element instance/tab: PASS
+- PO Vendor search results are contained in each browser PO module instance/tab: PASS
+- SQL remains read-only and all live changes use RF Plus: PASS
+
+NOT PERFORMED
+- No production RF Plus inventory adjustment was submitted.
+- No production Vendor SQL query was executed against the live QM database.
+- No live trace-profile-required part was adjusted.
+- Browser-native opened option menus cannot be completely simulated by jsdom; dark CSS and
+  color-scheme rules were verified in source.
+- PowerShell was structurally checked, but this Linux build environment does not include
+  Windows PowerShell/IIS/SQL Server for a live server execution test.
+
+FIRST LIVE ACCEPTANCE
+Use one small known non-traceable Adjust In, then verify VISUAL inventory and transaction
+history before using Mass Adjust In. Test Vendor Search with one known vendor and compare
+its open PO list with VISUAL.

@@ -1,0 +1,42 @@
+QX Web 1.10 Beta v0.5 — Test Report
+====================================
+
+AUTOMATED / MOCK TESTS
+PASS - JavaScript syntax: app.js
+PASS - JavaScript syntax: adjust-native.js
+PASS - Restored QtyAvailable response parsing
+PASS - Restored QtyOnHand response parsing
+PASS - Restored OnHandQty response parsing
+PASS - Zero-stock locations excluded from Single Adjust Out
+PASS - Single Adjust Out auto-selects a valid stocked location
+PASS - SQL primary location is highlighted visually
+PASS - SQL primary location does not replace the selected stocked location
+PASS - Stocked non-primary location is accepted for RF Plus submission
+PASS - Adjust Out payload uses the actual selected location
+PASS - Mass Adjust Out auto-selects when exactly one location has stock
+PASS - Mass Adjust Out pauses for selection when multiple locations have stock
+PASS - Mass Adjust Out exposes only positive-stock locations
+PASS - No "Selected Stock Location should be Primary" rule exists
+PASS - RF Plus endpoint set unchanged from v0.4
+PASS - Adjust In endpoint and PRIMARY_LOC_ID logic remain present and unchanged
+PASS - SQL code remains read-only
+PASS - app.html/app.css/premium.css unchanged from v0.4
+PASS - PowerShell brace/parenthesis structural checks
+PASS - ZIP integrity
+
+MOCK SCENARIO
+RF Plus returned:
+- P1A1 with QtyAvailable = 10
+- P1B2 with QtyAvailable = 4 (SQL primary reference)
+- ZERO1 with QtyAvailable = 0
+
+Verified result:
+- P1A1 and P1B2 displayed
+- ZERO1 excluded
+- P1A1 remained the selected stock location
+- P1B2 displayed the Primary visual reference
+- Submit payload used P1A1, proving primary is not forced
+
+NOT PERFORMED
+- No live production inventory transaction was submitted.
+- First production acceptance should use a small controlled Adjust Out quantity.

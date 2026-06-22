@@ -1,0 +1,70 @@
+QX Web 1.10 Beta v0.1 Release Summary
+=====================================
+
+BASE
+QX Web 1.9.2 Dark Session + iPad Fix. QX 1.9 Final Chrome Extension was not edited.
+
+RF PLUS ADJUST IN INVESTIGATION
+Confirmed from the provided RF Plus WebHH frontend source maps and WebHHApi backend:
+- Final endpoint: POST /api/inventoryAdjust/InventoryAdjustIn
+- Part validation: POST /api/inventoryAdjust/ValidatePart
+  Payload: { partId, isAdjustOut:false }
+- Part list used by RF Plus: POST /api/inventoryTransfer/GetAdjustInParts
+  Payload: { warehouseId, showAnyQty:true }
+- Reasons: POST /api/inventoryAdjust/GetReason
+  Payload: { warehouseId }
+- Destination status check: POST /api/inventoryTransfer/NeedSetPartLocationStatus
+  Payload: { partId, locationId, warehouseId }
+- Destination validation/creation: POST /api/InventoryAdjust/ValidateLocationAndCreatePartLocation
+  Payload: { partId, toLocationId, toWarehouseId, locStatus }
+- Trace validation: POST /api/POReceiving/validateTrace with isAdjustOut:false
+- Trace profile generation: getTraceProfile / updateTraceProfile
+- Trace max quantity: POST /api/POReceiving/getMaxLotQty
+- Final payload:
+  { partId, traceId, qty, warehouseId, locationId, transactionDescription, reason }
+
+ADJUST IN VS ADJUST OUT
+- Adjust Out selects an existing location with available quantity and prevents quantity above stock.
+- Adjust In can use an active destination even when current quantity is zero.
+- Adjust In validates/creates the part-location record through RF Plus.
+- A new part/location combination requires an explicit A/U/H location status.
+- Both use positive quantities. Adjust In does not use a negative Adjust Out quantity.
+
+FILES CHANGED
+- app.html
+  Renamed navigation and custom element; added PO search type and vendor result host.
+- app.js
+  Added Vendor Open PO search, selection-to-existing-load workflow, title/version updates.
+- adjust-native.js
+  Replaced the Adjust Out-only element with one native Inventory Adjust component containing
+  Adjust Out, Adjust In, Mass Adjust Out, and Mass Adjust In.
+- premium.css
+  Shared dark native-select styling and compact responsive vendor PO results.
+- qx-web-server.ps1
+  Added read-only inventory-adjust part/location endpoint and Vendor Open PO query endpoint.
+- README_QX_1_9_WEB.txt
+  Updated hosting, architecture, acceptance, and limitation instructions.
+
+NEW READ-ONLY SERVER ENDPOINTS
+- GET /api/inventory-adjust/part?partId=...
+  Sources: dbo.PART + dbo.CR_PART_LOCATION
+- GET /api/po/vendor-search?q=...
+  Sources: dbo.PURCHASE_ORDER + dbo.PURC_ORDER_LINE + dbo.PURC_LINE_DEL + dbo.VENDOR
+
+VENDOR OPEN PO RULES
+- PURCHASE_ORDER.STATUS = R
+- At least one line/delivery has ORDER_QTY - RECEIVED_QTY > 0
+- Partially received POs remain visible while an open quantity exists
+- Fully received POs are excluded in SQL
+- Selecting a result calls the existing PO load path
+
+SHARED COMPONENTS / SERVICES REUSED
+- Main RF Plus session and api() service
+- Shared QX server/Bridge connection
+- Global RF Plus and Bridge indicators/reconnect flow
+- Shared dark design variables and button styles
+- Native PO Receiving module and existing PO load/receive/update/label workflow
+- Per-tab multi-user session isolation
+
+KNOWN LIMITATIONS
+See README_QX_1_9_WEB.txt.

@@ -1,0 +1,78 @@
+QX Web 1.10 Beta v0.4 — Test Report
+====================================
+
+COMPLETED AUTOMATED / STATIC TESTS
+
+1. JavaScript syntax
+   PASS: app.js
+   PASS: adjust-native.js
+
+2. PowerShell structural validation
+   PASS: balanced braces and parentheses
+   PASS: new routes and functions present
+
+3. SQL source verification
+   PASS: primary source is dbo.PART_SITE.PRIMARY_LOC_ID
+   PASS: PART_SITE is joined through dbo.WAREHOUSE.SITE_ID
+   PASS: zero-stock/no-part-location case remains valid
+   PASS: parameterized batch IN clause is used
+   PASS: no SQL INSERT, UPDATE, DELETE, or MERGE was added
+
+4. Adjust Out selection
+   PASS: zero-stock rows are excluded
+   PASS: primary location is not forced
+   PASS: stocked non-primary row can remain selected when it has the best available stock
+   PASS: primary visual-reference data is still loaded
+
+5. Single Adjust In
+   PASS: warehouse-aware SQL endpoint used
+   PASS: valid primary location is auto-selected
+   PASS: zero-stock primary suggestion is added to the data model
+   PASS: missing mapping uses the requested accurate fallback message
+
+6. Mass Adjust In
+   PASS: all unique Part IDs use one batch SQL request
+   PASS: no getAdjustInRead/per-row SQL call remains in mass preparation
+   PASS: explicit Excel location overrides SQL primary
+   PASS: missing/invalid mapping becomes NEEDS LOCATION
+   PASS: blocked rows are not included in submission
+
+7. PO Description Keyword
+   PASS: description partial match
+   PASS: Vendor Part ID full/partial match
+   PASS: Manufacturer Part ID full/partial match
+   PASS: case-insensitive matching
+   PASS: dashes and periods match normally
+   PASS: Part Filter remains unchanged
+   PASS: Part Filter + Description Keyword combine correctly
+   PASS: filtering uses already-loaded PO line data
+
+8. Hidden manufacturer data
+   PASS: MfgPartID added to SQL/model
+   PASS: no visible Mfg Part column added to app.html
+   PASS: PO Lines layout unchanged
+
+9. Design preservation
+   PASS: app.html unchanged from v0.3
+   PASS: app.css unchanged from v0.3
+   PASS: premium.css unchanged from v0.3
+   PASS: logos unchanged
+
+10. Endpoint preservation
+    PASS: existing RF Plus transaction endpoints unchanged
+    PASS: existing PO Receiving action routes unchanged
+    PASS: new SQL endpoint is read-only
+
+NOT LIVE-TESTED
+- Production QM PART_SITE data
+- Production Adjust In transaction
+- Production Mass Adjust In
+- Live PO filter results using an actual MFG_PART_ID
+
+RECOMMENDED CONTROLLED ACCEPTANCE
+1. Load a known Part ID whose primary destination currently has zero stock.
+2. Confirm Adjust In auto-selects the expected primary location.
+3. Submit a quantity of 1 and verify VISUAL inventory/history.
+4. Paste two known Part IDs + quantities into Mass Adjust In and use PREPARE ONLY.
+5. Load a PO and test Description Keyword using Description, Vendor Part ID, and
+   Manufacturer Part ID values.

@@ -1,0 +1,75 @@
+QX Web 1.10 Beta v0.3 — UI + Primary Location Fix
+==================================================
+
+Product boundary
+----------------
+This is QX WEB only. QX 1.9 Final Chrome Extension remains unchanged.
+Base: QX Web 1.10 Beta v0.2 LAN Auto-Host Fix.
+
+Changes
+-------
+1. RF status label
+   - Connected state text changed from RF Connected to RF Plus.
+   - Reconnect/session/status behaviour is unchanged.
+
+2. Inventory Adjust button colors
+   - Restored the established QX button hierarchy inside the native Inventory
+     Adjust Shadow DOM:
+       cyan = find/validate
+       green = Adjust In / Mass Adjust
+       red = Adjust Out
+       neutral = clear/secondary
+   - No global button styles or other modules were changed.
+
+3. Primary location visibility
+   - Uses PART.PRIMARY_LOC_ID from the existing read-only Inventory Adjust API.
+   - Primary locations display in yellow with a small Primary label in:
+       single Adjust Out and Adjust In selected location
+       location result rows and suggestions
+       Mass Adjust Out location choices and previews
+       Mass Adjust In location inputs and previews
+   - Non-primary locations retain normal text styling.
+
+4. Mass paste area
+   - Dark input background.
+   - Pasted data remains full-strength/readable.
+   - Placeholder/help text uses approximately 60% opacity.
+   - Shared styling applies to both Mass Adjust Out and Mass Adjust In.
+
+5. Automatic Adjust In destination
+   - Single Adjust In selects a valid primary destination automatically.
+   - Mass Adjust In uses the valid primary destination when Excel contains only
+     Part ID + Qty.
+   - A valid Excel Location overrides the primary destination.
+   - No non-primary fallback location is guessed when primary is unavailable.
+   - Inactive, locked, transit or HOLD primary records are not auto-selected.
+   - RF Plus performs final destination validation. Rejected destinations become
+     Needs Location and cannot be silently resubmitted.
+
+Files changed
+-------------
+- app.js
+- adjust-native.js
+- qx-web-server.ps1
+- START_QX_WEB.bat (version comment only)
+- README_QX_1_9_WEB.txt
+
+Files added
+-----------
+- RELEASE_QX_WEB_1_10_BETA_V0_3.txt
+- TEST_REPORT_QX_WEB_1_10_BETA_V0_3.txt
+
+Unchanged
+---------
+- app.html
+- app.css
+- premium.css
+- QX navigation/layout/theme
+- PO Receiving/Vendor Search business logic
+- RF Plus transaction endpoints and payload shapes
+- LAN auto-host setup behaviour
+
+Safety
+------
+SQL remains read-only. All Adjust In and Adjust Out transactions continue through
+existing RF Plus API endpoints.

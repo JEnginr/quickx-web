@@ -1,0 +1,76 @@
+QX Web 1.10 Beta v0.6 — Inventory Adjust SQL + Location Fix
+================================================================
+
+BASE
+- Built only from quickx_qx_web_1_10_beta_v0_5_adjust_out_location_restore.
+- QX 1.9 Final Chrome Extension was not changed.
+- No PO Receiving, Vendor PO Search, WO, Part Lookup, KANBAN, navigation, theme,
+  session, printer, or hosting business logic was changed.
+
+ROOT CAUSE
+1. Adjust Out validated the Part ID through RF Plus, then attempted a long list of
+   RF Plus Inventory Lookup request shapes to discover locations.
+2. The existing read-only SQL endpoint /api/inventory-adjust/part was only being
+   used for Adjust In / primary metadata, not as Adjust Out's stock-location source.
+3. RF Plus could validate the Part ID while the guessed lookup response did not map
+   to a usable location, producing "No usable stock location was returned."
+4. The combined Adjust In/Out UI also sorted and labelled primary locations in both
+   modes, allowing Adjust In primary rules to influence Adjust Out.
+
+IMPLEMENTATION
+- /api/inventory-adjust/part remains parameterized and read-only.
+- Its response now exposes two explicit compatible arrays:
+    stockLocations       = actual usable locations with AvailableQty > 0
+    destinationLocations = valid existing locations plus a valid zero-stock primary
+- Existing locations remains in the response for backward compatibility.
+
+ADJUST OUT
+- Uses getAdjustOutStockLocations(), backed by /api/inventory-adjust/part.
+- Loads SQL Part ID, Description, UOM, primary metadata and actual stock locations.
+- Only active, unlocked, non-transit, non-HOLD locations with AvailableQty > 0 appear.
+- One stocked location auto-selects.
+- Multiple stocked locations require a user selection.
+- A typed location cannot submit unless it matches an actual stocked row.
+- Primary location is yellow text only and has no effect on sorting, selection,
+  validation or transaction acceptance.
+- The Primary badge and PRIMARY status were removed.
+- After a successful RF Plus Adjust Out, only the affected part's SQL locations are
+  refreshed; the full application is not reloaded.
+
+ADJUST IN
+- Uses getAdjustInDestinationLocations() separately from Adjust Out.
+- Defaults to SQL dbo.PART_SITE.PRIMARY_LOC_ID when valid.
+- The user can select an existing zero-stock destination or type another location.
+- The selected destination is validated by the confirmed RF Plus workflow:
+    /api/inventoryTransfer/NeedSetPartLocationStatus
+    /api/InventoryAdjust/ValidateLocationAndCreatePartLocation
+- The selected user destination, not a forced primary, is sent to:
+    /api/inventoryAdjust/InventoryAdjustIn
+- Primary badge removed; yellow text remains visual only.
+
+MASS WORKFLOWS
+- Mass Adjust Out reads actual stock locations from the same SQL stock resolver.
+- One location auto-selects; multiple locations require selection.
+- Mass Adjust In runs the batch SQL primary lookup only in Adjust In mode.
+- A provided Excel destination overrides SQL primary.
+- Every Adjust In destination remains subject to RF Plus validation.
+
+TRANSACTION SAFETY
+- SQL contains no INSERT, UPDATE, DELETE, MERGE, EXEC or transaction write logic.
+- Final live routes are unchanged:
+    /api/inventoryAdjust/InventoryAdjustOut
+    /api/inventoryAdjust/InventoryAdjustIn
+- Existing 15-second identical-submission guard remains.
+- Buttons remain disabled during submission.
+- Browser/session multi-user logic was not modified.
+
+FILES CHANGED
+- adjust-native.js
+- qx-web-server.ps1
+- app.js (version string only)
+- START_QX_WEB.bat (version comment only)
+- README_QX_1_9_WEB.txt (version and release notes only)
+
+FILES ADDED
+- RELEASE_QX_WEB_1_10_BETA_V0_6.txt
+- TEST_REPORT_QX_WEB_1_10_BETA_V0_6.txt

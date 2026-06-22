@@ -1,0 +1,416 @@
+/* ============================================================
+   QuickX Web 1.9 — Premium shell + single dark theme
+   Loaded AFTER app.css so these rules win. Structure/JS preserved.
+   Dark mode is the only supported theme. Buttons follow the QX colour language.
+   ============================================================ */
+
+/* ---------- THEME TOKENS ---------- */
+:root{
+  --primary:#22c7e0;
+  --primary-dark:#0e9bb4;
+  --success:#06d6a0;      /* 1.7 receive/confirm green */
+  --danger:#ef476f;       /* 1.7 destructive red */
+  --warning:#ffd166;      /* 1.7 warning amber */
+  --print:#7c3aed;        /* 1.7 print purple */
+  --bg:#0b0d11;
+  --surface:#15181e;
+  --surface2:#1b1f27;
+  --border:rgba(255,255,255,.09);
+  --border-strong:rgba(255,255,255,.14);
+  --text:#eef1f6;
+  --muted:#8a93a1;
+  --faint:#5b626e;
+  --radius:12px;
+  --accent-glow:rgba(34,199,224,.30);
+  --sidebar-bg:rgba(20,24,31,.72);
+  --toolbar-bg:linear-gradient(180deg,rgba(17,21,28,.82),rgba(13,16,21,.72));
+  --card-grad:linear-gradient(180deg,var(--surface),#12151b);
+  --row-hover:rgba(255,255,255,.025);
+  --input-bg:rgba(255,255,255,.04);
+  --shadow-card:0 8px 30px rgba(0,0,0,.28);
+  --font:-apple-system,"SF Pro Text","SF Pro Display","Helvetica Neue",system-ui,sans-serif;
+  --mono:ui-monospace,"SF Mono","JetBrains Mono",Menlo,monospace;
+}
+
+html{color-scheme:dark;background:#0b0d11;}
+:root{color-scheme:dark;}
+body,input,select,textarea,button{color-scheme:dark;}
+input[type="checkbox"],input[type="radio"]{accent-color:var(--primary);}
+::-webkit-scrollbar{width:12px;height:12px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border:3px solid var(--bg);border-radius:999px;}
+::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+
+html,body{height:100%;}
+body{
+  font-family:var(--font);-webkit-font-smoothing:antialiased;letter-spacing:.1px;
+  background:
+    radial-gradient(1100px 650px at 80% -8%, color-mix(in srgb, var(--primary) 6%, var(--bg)) 0%, transparent 60%),
+    var(--bg);
+  color:var(--text);
+}
+*{font-variant-numeric:tabular-nums;}
+
+/* ---------- SHELL ---------- */
+.qx-shell{display:grid;grid-template-columns:216px 1fr;min-height:100vh;}
+.qx-body{display:flex;flex-direction:column;min-width:0;}
+
+/* sidebar */
+.sidebar{background:var(--sidebar-bg);-webkit-backdrop-filter:blur(30px) saturate(160%);backdrop-filter:blur(30px) saturate(160%);border-right:1px solid var(--border);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;}
+.side-brand{display:flex;align-items:center;gap:10px;padding:18px 18px 14px;}
+.side-logo{height:30px;width:auto;object-fit:contain;filter:drop-shadow(0 0 10px var(--accent-glow)) drop-shadow(0 0 2px var(--accent-glow));}
+.side-name{font-weight:700;font-size:15px;letter-spacing:.2px;color:var(--text);}
+.side-ver{color:var(--faint);font-weight:500;font-size:12px;margin-left:4px;}
+.side-nav{padding:6px 10px;overflow-y:auto;flex:1;}
+.nav-sec{font-size:10.5px;text-transform:uppercase;letter-spacing:1px;color:var(--faint);font-weight:700;padding:14px 10px 5px;}
+.nav-item{display:flex!important;align-items:center;gap:10px;width:100%;text-align:left;padding:8px 10px;border-radius:7px;font-size:13.5px;color:var(--muted);cursor:pointer;font-weight:500;border:none;background:transparent;transition:background .12s,color .12s;letter-spacing:.1px;}
+.nav-item .nav-ic{width:17px;text-align:center;font-size:14px;opacity:.85;flex:none;}
+.nav-item:hover{background:var(--row-hover);color:var(--text);}
+.nav-item.active{background:color-mix(in srgb, var(--primary) 18%, transparent);color:var(--text);box-shadow:0 1px 0 rgba(255,255,255,.06) inset;}
+.nav-item.active .nav-ic{opacity:1;color:var(--primary);}
+.side-foot{padding:12px;border-top:1px solid var(--border);}
+.user-chip{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;background:var(--row-hover);}
+.avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(160deg,var(--primary),var(--primary-dark));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#04222a;flex:none;}
+.user-chip-txt{font-size:12px;color:var(--muted);font-weight:600;background:none;border:none;padding:0;}
+
+/* toolbar */
+.topbar{height:54px;padding:0 18px;position:sticky;top:0;z-index:90;background:var(--toolbar-bg);-webkit-backdrop-filter:blur(24px) saturate(160%);backdrop-filter:blur(24px) saturate(160%);border-bottom:1px solid var(--border);box-shadow:none;display:flex;align-items:center;justify-content:space-between;}
+.topbar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,transparent,var(--accent-glow),transparent);opacity:.6;}
+.tb-title{font-size:15px;font-weight:700;letter-spacing:.2px;color:var(--text);}
+.topbar-actions{display:flex;align-items:center;gap:9px;}
+
+/* status dots */
+.stat-dot{display:flex;align-items:center;gap:8px;padding:6px 12px;border-radius:99px;background:var(--input-bg);border:1px solid var(--border);cursor:pointer;font-size:12.5px;font-weight:600;color:var(--text);transition:border-color .15s,background .15s;}
+.stat-dot:hover{border-color:var(--border-strong);}
+.sd{width:8px;height:8px;border-radius:50%;flex:none;}
+.sd.ok{background:var(--success);box-shadow:0 0 8px color-mix(in srgb,var(--success) 70%,transparent);}
+.sd.down{background:var(--danger);box-shadow:0 0 8px color-mix(in srgb,var(--danger) 70%,transparent);}
+.sd.busy{background:var(--warning);box-shadow:0 0 9px color-mix(in srgb,var(--warning) 80%,transparent);animation:qxPulse 1s ease-in-out infinite;}
+@keyframes qxPulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.3;transform:scale(.82);}}
+.sd-lbl{color:var(--muted);font-weight:600;}
+
+
+/* main content */
+.main{max-width:none;margin:0;padding:22px 24px 30px;}
+
+/* cards / panels */
+.card{background:var(--card-grad);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-card);}
+.card-header{border-bottom:1px solid var(--border);color:var(--muted);font-size:11.5px;letter-spacing:.6px;}
+
+/* inputs — cover every input variant so none falls back to white */
+input,textarea,select{background:var(--input-bg);border:1px solid var(--border-strong);color:var(--text);border-radius:10px;}
+input[type=text],input[type=number],input[type=search],input[type=tel],input:not([type]),select,textarea{background:var(--input-bg);border:1px solid var(--border-strong);color:var(--text);border-radius:10px;}
+input:focus,textarea:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--accent-glow);outline:none;}
+input::placeholder,textarea::placeholder{color:var(--muted);opacity:.8;}
+.wo-input{font-family:var(--mono);}
+/* dropdown options: keep the open menu on-theme (native menus are limited; this
+   sets the colours browsers do honour) */
+select{color-scheme:dark;background-color:var(--input-bg)!important;color:var(--text)!important;}
+select option,select optgroup{color-scheme:dark;background:#151a22!important;color:#e8edf5!important;}
+select option:checked,select option:hover{background:#2a83c9!important;color:#ffffff!important;}
+select:disabled,select option:disabled{background:#11151c!important;color:var(--muted)!important;opacity:.7;}
+
+/* ---------- BUTTONS: QX 1.7 hues, refined macOS finish ---------- */
+.btn{border-radius:9px;border:1px solid transparent;font-weight:600;transition:filter .15s,transform .04s,box-shadow .15s,background .15s;box-shadow:0 1px 2px rgba(0,0,0,.18),0 1px 0 rgba(255,255,255,.14) inset;}
+.btn:active{transform:translateY(.5px);box-shadow:0 1px 1px rgba(0,0,0,.2) inset;}
+.btn-primary{background:linear-gradient(180deg,color-mix(in srgb,var(--primary) 92%,white),var(--primary));border-color:color-mix(in srgb,var(--primary) 70%,black);color:#03222a;}
+.btn-primary:hover{filter:brightness(1.04);}
+.btn-success{background:linear-gradient(180deg,color-mix(in srgb,var(--success) 90%,white),var(--success));border-color:color-mix(in srgb,var(--success) 68%,black);color:#04231a;}
+.btn-success:hover{filter:brightness(1.03);}
+.btn-danger{background:linear-gradient(180deg,color-mix(in srgb,var(--danger) 92%,white),var(--danger));border-color:color-mix(in srgb,var(--danger) 70%,black);color:#fff;}
+.btn-danger:hover{filter:brightness(1.04);}
+.btn-print{background:linear-gradient(180deg,color-mix(in srgb,var(--print) 92%,white),var(--print));border-color:color-mix(in srgb,var(--print) 68%,black);color:#fff;}
+.btn-print:hover{filter:brightness(1.05);}
+.btn-ghost{background:linear-gradient(180deg,color-mix(in srgb,var(--surface2) 80%,white 6%),var(--surface2));border:1px solid var(--border-strong);color:var(--text);box-shadow:0 1px 2px rgba(0,0,0,.12);}
+.btn-ghost:hover{background:var(--surface2);filter:brightness(1.05);}
+
+/* tables */
+table{font-size:13px;}
+th{color:var(--faint);font-size:10.5px;letter-spacing:.6px;border-bottom:1px solid var(--border);background:transparent;}
+td{border-bottom:1px solid var(--border);color:var(--text);}
+tbody tr{transition:background .1s;}
+tbody tr:hover{background:var(--row-hover);}
+
+/* summary stat cards */
+.sc{background:var(--card-grad);border:1px solid var(--border);border-radius:var(--radius);transition:transform .1s,box-shadow .15s,border-color .15s;}
+.sc:hover{transform:translateY(-2px);box-shadow:var(--shadow-card);border-color:var(--border-strong);}
+
+/* Part ID cells: the clean PO-Lines look reused in WO Master / WO Issuing */
+.qx-part,.po-part{font-family:var(--font);font-weight:700;color:var(--primary);letter-spacing:.3px;}
+
+/* toast / modal / login */
+#toast .toast,.toast{background:var(--surface)!important;color:var(--text)!important;border:1px solid var(--border-strong)!important;border-radius:11px!important;box-shadow:0 16px 40px rgba(0,0,0,.35)!important;}
+.modal-overlay,.login-overlay,.modal{background:rgba(2,6,12,.62)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);}
+.modal-card,.login-card,.modalBox{background:var(--surface)!important;border:1px solid var(--border-strong)!important;border-radius:14px!important;box-shadow:0 24px 70px rgba(0,0,0,.4)!important;color:var(--text)!important;}
+
+/* responsive: collapse sidebar to icon rail */
+@media (max-width:900px){
+  .qx-shell{grid-template-columns:64px 1fr;}
+  .side-name,.side-ver,.nav-sec,.nav-lbl,.user-chip-txt{display:none;}
+  .side-brand{justify-content:center;padding:14px 0;}
+  .side-logo{height:26px;}
+  .nav-item{justify-content:center;padding:10px 0;}
+  .side-foot{display:flex;justify-content:center;}
+}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important;}}
+
+/* ============================================================
+   PO Receiving — native module styles (QX 1.8)
+   Scrolls inside the main content area; no nested page scrollbar.
+   ============================================================ */
+.po-search-card .card-body{padding:16px;}
+.po-search-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px;}
+.po-filter-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
+.po-fg{display:flex;flex-direction:column;gap:5px;}
+.po-fg.po-flex{flex:1;min-width:200px;}
+.po-fg label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+.po-fg input,.po-fg select{padding:10px 12px;font-size:14px;border-radius:9px;}
+.po-fg.po-box input.po-big{font-size:18px;font-weight:700;font-family:var(--mono);letter-spacing:1px;min-width:180px;}
+.po-hint{font-size:12px;color:var(--muted);align-self:center;}
+.po-search-type{min-width:130px;}
+.po-search-type select{min-width:130px;}
+.po-vendor-results{margin:2px 0 12px;border:1px solid var(--border);border-radius:11px;background:var(--surface2);overflow:hidden;}
+.po-vendor-results-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 12px;border-bottom:1px solid var(--border);color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;}
+.po-vendor-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:8px;padding:10px;max-height:300px;overflow:auto;}
+.po-vendor-result{appearance:none;-webkit-appearance:none;width:100%;text-align:left;background:var(--surface);color:var(--text);border:1px solid var(--border-strong);border-radius:10px;padding:10px 12px;cursor:pointer;display:grid;gap:5px;min-width:0;}
+.po-vendor-result:hover,.po-vendor-result:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--accent-glow);outline:none;}
+.po-vendor-result-top{display:flex;justify-content:space-between;gap:8px;align-items:center;}
+.po-vendor-po{font-family:var(--mono);font-size:15px;font-weight:850;color:var(--primary);}
+.po-vendor-name{font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.po-vendor-meta{display:flex;gap:10px;flex-wrap:wrap;color:var(--muted);font-size:11px;}
+.po-vendor-empty{padding:16px;color:var(--muted);text-align:center;}
+.po-statbar{margin:0 0 14px;padding:10px 14px;border-radius:10px;font-size:13px;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text);}
+.po-statbar.ok{border-color:color-mix(in srgb,var(--success) 45%,transparent);color:var(--success);}
+.po-statbar.err{border-color:color-mix(in srgb,var(--danger) 45%,transparent);color:var(--danger);}
+.po-statbar.ld{color:var(--muted);}
+
+/* the scroll fix: table area scrolls within the card, sticky header */
+.po-lines-card .card-body.po-tableWrap{padding:0;max-height:calc(100vh - 320px);overflow:auto;}
+.po-table{width:100%;border-collapse:collapse;font-size:13px;min-width:980px;}
+.po-table thead th{position:sticky;top:0;z-index:2;background:var(--surface);backdrop-filter:blur(6px);}
+.po-table th,.po-table td{padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap;}
+.po-table td.po-descCell{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.po-table td.po-udfCell{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.po-table .po-descCol{min-width:200px;max-width:260px;}
+.po-mono{font-family:var(--mono);}
+.po-part{font-weight:700;color:var(--primary);}
+.po-empty{text-align:center;color:var(--muted);padding:26px 0!important;}
+.po-actionCell{position:sticky;right:0;background:var(--surface);box-shadow:-8px 0 12px -8px rgba(0,0,0,.4);}
+.po-actions{display:flex;gap:6px;flex-wrap:nowrap;}
+.po-actions .btn{padding:7px 11px;font-size:12px;min-height:34px;}
+.btn-sm{padding:6px 12px;font-size:12.5px;}
+
+.po-pill{display:inline-block;padding:3px 11px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.4px;}
+.po-p-open{background:color-mix(in srgb,var(--primary) 16%,transparent);color:var(--primary);}
+.po-p-rec{background:color-mix(in srgb,var(--warning) 20%,transparent);color:var(--warning);}
+.po-p-done{background:color-mix(in srgb,var(--success) 18%,transparent);color:var(--success);}
+
+.po-advanced{margin-top:14px;}
+.po-advanced summary{cursor:pointer;color:var(--muted);font-size:12px;font-weight:600;}
+.po-advanced textarea{width:100%;margin-top:8px;background:var(--input-bg);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--mono);font-size:12px;padding:10px;}
+
+/* PO qty modal */
+.po-modalBox{width:min(420px,100%);padding:22px;position:relative;box-sizing:border-box;}
+.po-modalInfo{font-size:13px;color:var(--muted);line-height:1.6;margin:6px 0 14px;}
+.po-modalControls{display:flex;flex-direction:column;gap:16px;}
+.po-controlBlock{width:100%;min-width:0;}
+.po-controlBlock label{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.4px;display:block;margin-bottom:6px;}
+.po-stepper{display:flex;align-items:center;gap:10px;width:100%;}
+.po-stepper input{flex:1;min-width:0;text-align:center;font-size:18px;font-weight:800;padding:11px;border-radius:9px;font-family:var(--mono);}
+.po-qtyBtn{width:46px;height:46px;flex:none;border-radius:9px;border:1px solid var(--border-strong);background:var(--surface2);color:var(--text);font-size:22px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.po-qtyBtn:hover{background:var(--border);}
+
+@media(max-width:900px){
+  .po-lines-card .card-body.po-tableWrap{max-height:calc(100vh - 360px);}
+}
+
+/* ---------- Part Lookup: match Work Orders width & remove stray scroll ---------- */
+.pl-summary-grid{max-width:none!important;margin:0 0 14px!important;}
+#plPartPanel,#plStockPanel,#plDemandPanel,#plPoPanel,#plIssuedPanel{max-width:none!important;margin:0 0 14px!important;}
+#plDemandPanel table,#plIssuedPanel table,#plPoPanel table{width:100%;table-layout:auto;}
+/* Description cells truncate with ellipsis (full text on hover) so tables fit — no horizontal scroll. */
+.pl-desc{max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+#plDemandPanel,#plIssuedPanel,#plPoPanel{overflow-x:visible;}
+#plPartPanel,#plStockPanel{overflow-x:auto;}
+
+/* Shared dark-mode control safety */
+.label-stepper .step-btn{background:var(--surface2)!important;color:var(--text)!important;border:1px solid var(--border-strong)!important;}
+
+/* ---------- Multi-user sign-in form ---------- */
+.login-fields{display:flex;flex-direction:column;gap:4px;margin:16px 0 6px;text-align:left;}
+.login-flabel{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--muted);margin-top:8px;}
+.login-input{width:100%;background:var(--input-bg);border:1px solid var(--border-strong);color:var(--text);border-radius:10px;padding:12px 14px;font-size:15px;outline:none;}
+.login-input:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--accent-glow);}
+#loginUser{font-family:var(--mono);font-weight:700;letter-spacing:1px;}
+#loginBtn{width:100%;margin-top:14px;}
+
+/* sign-out button in the user chip */
+.user-chip{position:relative;}
+.signout-btn{margin-left:auto;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:7px;width:26px;height:26px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex:none;transition:color .15s,border-color .15s,background .15s;}
+.signout-btn:hover{color:var(--danger);border-color:var(--danger);background:color-mix(in srgb,var(--danger) 12%,transparent);}
+@media(max-width:900px){.signout-btn{display:none;}}
+
+/* ============================================================
+   Shared responsive table primitives
+   Reused by Active Demand and available to future modules.
+   ============================================================ */
+.qx-responsive-table-wrap{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;}
+.qx-responsive-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.qx-action-cell{white-space:nowrap;}
+.qx-action-btn{min-height:40px;min-width:66px;padding:8px 12px;font-size:12px;justify-content:center;}
+.qx-status-cell{min-width:0;white-space:normal;}
+.qx-status-cell .badge{display:inline-flex;align-items:center;justify-content:center;max-width:100%;white-space:normal;text-align:center;line-height:1.15;}
+.qx-description-cell{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.qx-qty-cell input{box-sizing:border-box;max-width:100%;}
+
+/* ============================================================
+   Shared Active Demand component — Part Lookup + PO Receiving
+   ============================================================ */
+.ad-card-body{padding:0!important;}
+.ad-selected-part{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:12px 14px;border-bottom:1px solid var(--border);background:var(--row-hover);}
+.ad-selected-label{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.65px;color:var(--faint);}
+.ad-selected-id{font-size:14px;}
+.ad-selected-desc{min-width:0;max-width:min(680px,70vw);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:12.5px;}
+.ad-loading,.ad-message{display:flex;align-items:center;gap:10px;padding:22px 16px;color:var(--muted);font-size:13px;}
+.ad-message{justify-content:center;text-align:center;}.ad-message.ad-error{color:var(--danger);}.ad-refreshing{opacity:.72;pointer-events:none;}
+.ad-table-wrap{overflow-x:auto;overflow-y:visible;}
+.ad-table{min-width:1040px;}
+.ad-table th,.ad-table td{padding:9px 8px;vertical-align:middle;}
+.ad-col-action{width:152px}.ad-col-wo{width:118px}.ad-col-sub{width:48px}.ad-col-location{width:155px}.ad-col-number{width:68px}.ad-col-qty{width:84px}.ad-col-status{width:126px}.ad-col-description{width:auto}
+.ad-center{text-align:center;}.ad-action-cell{white-space:nowrap;}.ad-action-cell .dm-action-buttons{display:flex;gap:8px;align-items:center;flex-wrap:nowrap;}.ad-action-cell .btn{min-height:40px;min-width:66px;padding:8px 12px;font-size:12px;}
+.ad-wo{color:var(--primary);}.ad-loc-select{width:100%;min-width:0;padding:8px 7px;font-family:var(--mono);font-size:11.5px;font-weight:700;}.ad-qty{width:100%;min-width:0;text-align:center;padding:8px 5px;font-weight:800;}.ad-available,.ad-remaining{font-weight:900;}.ad-available{color:var(--success);}.ad-desc{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}.ad-status-cell{overflow:hidden;}
+
+/* Tablet layout: rows become readable cards instead of squeezing eleven columns. */
+@media(max-width:1180px){
+  .ad-table-wrap{overflow-x:visible;}
+  .ad-table{min-width:0!important;display:block;}
+  .ad-table colgroup,.ad-table thead{display:none;}
+  .ad-table tbody{display:grid;gap:10px;padding:10px;}
+  .ad-table tr{display:grid;grid-template-columns:minmax(120px,1.05fr) 58px minmax(130px,1.15fr) minmax(126px,.95fr);grid-template-areas:
+    "wo sub status action"
+    "desc desc desc desc"
+    "location location available qty"
+    "remaining required issued issued";
+    gap:8px 10px;padding:11px;border:1px solid var(--border);border-radius:11px;background:var(--surface);box-shadow:0 2px 8px rgba(0,0,0,.08);}
+  .ad-table td{display:flex;align-items:center;min-width:0;padding:0;border:0!important;background:transparent!important;}
+  .ad-table td::before{content:attr(data-label);display:block;margin-right:7px;color:var(--faint);font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.35px;flex:none;}
+  .ad-action-cell{grid-area:action;justify-content:flex-end;}.ad-action-cell::before{display:none!important;}.ad-action-cell .dm-action-buttons{width:100%;justify-content:flex-end;}.ad-action-cell .btn{min-height:42px;min-width:68px;}
+  .ad-wo-cell{grid-area:wo;}.ad-sub-cell{grid-area:sub;justify-content:center;}.ad-loc-cell{grid-area:location;}.ad-avail-cell{grid-area:available;justify-content:flex-end;}.ad-qty-cell{grid-area:qty;justify-content:flex-end;}.ad-remain-cell{grid-area:remaining;}.ad-required-cell{grid-area:required;}.ad-issued-cell{grid-area:issued;justify-content:flex-end;}.ad-status-cell{grid-area:status;justify-content:flex-start;overflow:visible;}.ad-desc{grid-area:desc;white-space:normal;line-height:1.35;color:var(--muted);}.ad-desc::before{align-self:flex-start;margin-top:1px;}.ad-loc-select{min-height:40px;}.ad-qty{max-width:82px;min-height:40px;}
+}
+@media(max-width:760px){
+  .ad-table tbody{padding:8px;}.ad-table tr{grid-template-columns:1fr 1fr;grid-template-areas:
+    "wo sub"
+    "status status"
+    "desc desc"
+    "location location"
+    "available qty"
+    "remaining required"
+    "issued action";}
+  .ad-action-cell{justify-content:flex-end;}.ad-action-cell .dm-action-buttons{justify-content:flex-end;}.ad-action-cell .btn{min-width:64px;padding:8px 10px;}
+  .ad-selected-desc{max-width:100%;flex-basis:100%;}.ad-status-cell .badge{max-width:none;}
+}
+
+/* PO line selection + clickable Part ID */
+.po-part-link{appearance:none;border:0;background:transparent;color:var(--primary);font:inherit;font-weight:800;letter-spacing:.25px;padding:3px 5px;margin:-3px -5px;border-radius:6px;cursor:pointer;text-align:left;}
+.po-part-link:hover,.po-part-link:focus-visible{background:color-mix(in srgb,var(--primary) 14%,transparent);outline:none;text-decoration:underline;}
+.po-part-link.po-part-empty{color:var(--muted);font-weight:650;font-size:11.5px;}
+.po-selected-line td{background:color-mix(in srgb,var(--primary) 10%,var(--surface))!important;}
+.po-selected-line td:first-child{box-shadow:inset 3px 0 0 var(--primary);}
+.po-selected-line .po-actionCell{background:color-mix(in srgb,var(--primary) 10%,var(--surface))!important;}
+
+/* Collapsible PO Active Demand panel. Natural page scrolling; only the table
+   may scroll horizontally on narrow tablets. */
+.po-demand-card{margin-top:14px;overflow:hidden;}
+.po-demand-summary-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;cursor:pointer;color:var(--muted);font-size:11.5px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;list-style:none;border-bottom:1px solid var(--border);}
+.po-demand-summary-row::-webkit-details-marker{display:none;}
+.po-demand-summary-row::before{content:'▾';color:var(--primary);font-size:13px;transition:transform .12s;}
+.po-demand-card:not([open]) .po-demand-summary-row::before{transform:rotate(-90deg);}
+.po-demand-card:not([open]) .po-demand-summary-row{border-bottom:0;}
+
+
+
+/* ============================================================
+   QX 1.9 shared module header / printer layouts
+   Natural height prevents printer controls being clipped before WO load.
+   ============================================================ */
+.wo-control-card .wo-control-body{display:grid;grid-template-columns:minmax(0,1fr) minmax(310px,390px);grid-template-areas:"controls printer" "subs printer";gap:12px 18px;align-items:start;}
+.wo-control-card .wo-main-controls{grid-area:controls;max-width:none!important;min-width:0;}
+.wo-control-card #subSec{grid-area:subs;max-width:none!important;min-width:0;}
+.wo-control-card .label-controls{grid-area:printer;position:static!important;right:auto!important;top:auto!important;width:100%!important;min-height:0!important;margin:0!important;padding:12px!important;display:flex!important;gap:10px;align-items:flex-end;align-content:flex-start;flex-wrap:wrap;border:1px solid var(--border);border-radius:12px;background:var(--card-grad);overflow:visible;}
+.wo-control-card .label-controls .fg{min-width:0;flex:1 1 170px;}.wo-control-card .label-controls select{width:100%;min-width:0!important;}.wo-control-card .label-controls input[type=number]{width:90px;}.wo-control-card .label-controls .check-line{width:100%;min-height:36px;margin:0;}.wo-control-card .label-controls .dim{width:100%;white-space:normal;line-height:1.35;}
+@media(max-width:980px){.wo-control-card .wo-control-body{grid-template-columns:1fr;grid-template-areas:"controls" "printer" "subs";}.wo-control-card .label-controls{width:100%!important;}}
+
+.pl-toolbar-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(250px,330px);gap:16px;align-items:start;}.pl-toolbar-layout .pl-search-row{min-width:0;}.module-printer-control{border:1px solid var(--border);border-radius:11px;background:var(--card-grad);padding:11px 12px;display:flex;flex-direction:column;gap:7px;min-width:0;}.module-printer-control select{width:100%;min-width:0;font-family:var(--mono);font-weight:750;text-transform:uppercase;}.module-printer-control .dim{line-height:1.35;white-space:normal;}
+@media(max-width:900px){.pl-toolbar-layout{grid-template-columns:1fr;}.pl-printer-control{max-width:none;}}
+
+
+/* ============================================================
+   Shared WO requirements responsive table
+   Desktop keeps the table. Tablet/phone uses touch-friendly cards so the
+   Action controls can never be clipped outside the viewport.
+   ============================================================ */
+.wo-requirements-table-wrap{width:100%;max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;}
+.wo-requirements-table{min-width:1120px;}
+.wo-requirements-table th:last-child{position:sticky;right:0;z-index:3;background:var(--surface);box-shadow:-10px 0 16px -14px rgba(0,0,0,.9);}
+.wo-requirements-table .wo-action-cell{position:sticky;right:0;z-index:2;background:var(--surface);box-shadow:-10px 0 16px -14px rgba(0,0,0,.9);text-align:right;min-width:300px;}
+.wo-desc-cell{max-width:320px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.wo-sub-cell,.wo-req-cell,.wo-issued-cell,.wo-stock-cell{text-align:center;}
+.wo-action-cell .row-actions{min-height:44px;}
+.wo-action-cell .btn{min-height:40px;padding:8px 12px;}
+.wo-action-cell .return-qi{height:40px;min-width:58px;width:58px!important;}
+
+@media(max-width:1100px){
+  #iPanel{overflow:visible;}
+  .wo-requirements-table-wrap{overflow:visible;}
+  .wo-requirements-table{display:block;min-width:0!important;width:100%;}
+  .wo-requirements-table thead{display:none;}
+  .wo-requirements-table tbody{display:grid;gap:12px;padding:12px;}
+  .wo-requirements-table tr{display:grid;grid-template-columns:minmax(150px,1.2fr) minmax(90px,.55fr) minmax(120px,.8fr);grid-template-areas:
+    "part sub status"
+    "description description description"
+    "required issued stock"
+    "location location location"
+    "action action action";
+    gap:10px 12px;padding:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:var(--shadow-card);}
+  .wo-requirements-table td{display:flex;align-items:center;min-width:0;padding:0;border:0!important;background:transparent!important;position:static!important;box-shadow:none!important;text-align:left!important;}
+  .wo-requirements-table td::before{content:attr(data-label);display:block;margin-right:8px;color:var(--faint);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.45px;flex:none;}
+  .wo-part-cell{grid-area:part;}.wo-sub-cell{grid-area:sub;}.wo-status-cell{grid-area:status;justify-content:flex-end;}
+  .wo-desc-cell{grid-area:description;max-width:none;white-space:normal;line-height:1.4;color:var(--text);}
+  .wo-req-cell{grid-area:required;}.wo-issued-cell{grid-area:issued;}.wo-stock-cell{grid-area:stock;}
+  .wo-location-cell{grid-area:location;}.wo-action-cell{grid-area:action;display:block!important;}
+  .wo-action-cell::before{margin-bottom:7px;}
+  .wo-action-cell .row-actions{display:flex;justify-content:flex-start;gap:8px;flex-wrap:wrap;white-space:normal;}
+  .wo-action-cell .row-actions .btn{min-height:44px;min-width:86px;font-size:13px;}
+  .wo-action-cell .return-qi{height:44px!important;min-width:70px;width:70px!important;font-size:15px;}
+}
+@media(max-width:700px){
+  .wo-requirements-table tbody{padding:8px;}
+  .wo-requirements-table tr{grid-template-columns:1fr 1fr;grid-template-areas:
+    "part sub"
+    "status status"
+    "description description"
+    "required issued"
+    "stock location"
+    "action action";}
+  .wo-status-cell{justify-content:flex-start;}
+  .wo-action-cell .row-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;}
+  .wo-action-cell .row-actions .btn,.wo-action-cell .return-qi{width:100%!important;min-width:0;justify-content:center;}
+}
+
+/* iPad containment for WO summary, filters and header actions. */
+@media(max-width:1100px){
+  .sumrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+  .sumrow .sc{min-width:0;}
+  #iPanel>.card-header{flex-wrap:wrap;align-items:flex-start;gap:10px;}
+  #iPanel>.card-header>div{display:flex!important;width:100%;gap:8px!important;flex-wrap:wrap;}
+  #iPanel>.card-header>div .btn{min-height:42px;flex:1 1 180px;justify-content:center;}
+  #issueFilterBar .filter-fg{flex:1 1 190px;min-width:0;}
+  #issueFilterBar .filter-small{flex:1 1 150px;}
+  #issueFilterBar #iClearFilters{min-height:42px;}
+}
+@media(max-width:620px){
+  .sumrow{grid-template-columns:1fr 1fr;gap:8px;}
+  .sc{padding:10px 8px;}
+  .sc .n{font-size:24px;}
+  #iPanel>.card-header>div .btn{flex-basis:100%;}
+}
